@@ -1,0 +1,289 @@
+<html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+<script>
+var c;		// Canvas
+var ctx;	// Context
+
+var time;
+var diff;
+
+var W;	// Width
+var H;	// Height
+
+var objs;
+
+var playing = false;// For play button
+var frame = 0;
+
+// Click Play
+function play() {
+	setup();
+	if (!playing) {// Prevents game() from running multiple times
+		game();
+		playing = true;
+	}
+}
+
+function setup() {
+	c = $("#canvas");
+	ctx = c[0].getContext("2d");
+	
+	W = c.width();
+	H = c.height();
+	
+	console.log("Width: " + W + " Height: " + H);
+	
+	ctx.fillStyle = "#030322";
+	ctx.fillRect(0, 0, W, H);
+	
+	time = Date.now();
+	
+	objs = [new player([W/2, H/1.3],[0, 0],0,true,10),
+			new planet([W/2, H/2],[10, 20],200,true,40),
+			new planet([W/4, H/4],[10, 20],200,true,40),
+			new star([200, 100],[10, 20],0,true,12)];//,
+			//new planet([W/4, H/4],[100, -20],20,false,40),
+			//new planet([W/4, H/1.3],[10, -20],20,false,40)];
+	
+}
+
+function game() {
+	//
+	window.requestAnimationFrame(game);// Causes loop
+	
+	var t = Date.now();
+	diff = t - time;
+	time = t;
+	
+	// Display framerate/time
+	if (frame % 10 == 0) {// Update every 10 frames;
+		$("#framerate").text(Math.round(1000/diff));
+		$("#frametime").text(diff);
+	}
+	frame++;
+	
+	//input()??
+	sim();
+	draw();
+}
+
+function sim() {
+	//
+	for (var i = 0; i < objs.length; i++) {
+		var totalAcc = [0,0];
+		for (var j = 0; j < objs.length; j++) {
+			if (i != j) {
+				//accel
+				var xdist = objs[j].pos[0]-objs[i].pos[0];
+				var ydist = objs[j].pos[1]-objs[i].pos[1];
+				var dist = (xdist**2 + ydist**2)**(1/2);
+				
+				totalAcc[0] += objs[j].acc * (xdist/dist);
+				totalAcc[1] += objs[j].acc * (ydist/dist);
+			}
+		}
+		if (!objs[i].anchor) {
+			objs[i].vel[0] += totalAcc[0] * (diff/1000);
+			objs[i].vel[1] += totalAcc[1] * (diff/1000);
+			
+			objs[i].pos[0] += objs[i].vel[0] * (diff/1000);
+			objs[i].pos[1] += objs[i].vel[1] * (diff/1000);
+		}
+	}
+}
+
+function collision() {
+	// For now just player?
+	for (var i = 1; i < objs.length; i++) {
+		//
+	}
+}
+
+function draw() {
+	ctx.fillStyle = "#030322";
+	ctx.fillRect(0, 0, W, H);
+	for (var i = 0; i < objs.length; i++) {
+		objs[i].draw();
+	}
+	if (mousedown) {
+		var length = ((holdpos[0]-clickpos[0])**2 + (holdpos[1]-clickpos[1])**2)**(1/2);
+		var color = 255 - (length/1);
+		if (color < 0) {
+			color = 0;
+		}
+		ctx.strokeStyle = "rgb(255, "+color+", "+color+")";
+		ctx.beginPath();
+		ctx.moveTo(clickpos[0], clickpos[1]);
+		ctx.lineTo(holdpos[0], holdpos[1]);
+		ctx.lineWidth = 2;
+		ctx.lineCap = "round";
+		ctx.stroke();
+		ctx.closePath();
+	}
+}
+
+var mousedown = false;// Is the mouse being held down?
+var clickpos;// Position of mouse click
+var holdpos;// Position of mouse while held
+
+addEventListener("mousedown", (event) => {
+	//console.log("Client: " + (event.clientX-c.offset().left-1.5) + "," + (event.clientY-c.offset().top-1.5625) + "  Offset: " + event.offsetX + "," + event.offsetY);
+	var trueX = event.clientX-c.offset().left-1.5;//	Need to subtract offset to get xy on canvas.
+	var trueY = event.clientY-c.offset().top-1.5625;//	-1.5(625) is to adjust it.
+	
+	if (trueX >= 0 && trueX <= W && trueY >= 0 && trueY <= H) {
+		mousedown = true;
+		clickpos = [trueX, trueY];
+		holdpos = [trueX, trueY];
+		
+		objs[0].anchor = true;
+	}
+});
+addEventListener("mousemove", (event) => {
+	//console.log("Client: " + event.clientX + "," + event.clientY + "  Offset: " + event.offsetX + "," + event.offsetY + "  Page: " + event.pageX + "," + event.pageY + "  Screen: " + event.screenX + "," + event.screenY);
+	if (mousedown) {
+		var trueX = event.clientX-c.offset().left-1.5;
+		var trueY = event.clientY-c.offset().top-1.5625;
+		holdpos = [trueX, trueY];
+		
+		var length = ((holdpos[0]-clickpos[0])**2 + (holdpos[1]-clickpos[1])**2)**(1/2);
+		if (length < 255) {// Cap at 255
+			objs[0].vel = [clickpos[0]-holdpos[0], clickpos[1]-holdpos[1]];
+		} else {
+			objs[0].vel = [((clickpos[0]-holdpos[0])/length)*255, ((clickpos[1]-holdpos[1])/length)*255];
+		}
+	}
+});
+addEventListener("mouseup", (event) => {
+	//console.log("Client: " + event.clientX + "," + event.clientY + "  Offset: " + event.offsetX + "," + event.offsetY + "  Page: " + event.pageX + "," + event.pageY + "  Screen: " + event.screenX + "," + event.screenY);
+	if (mousedown) {
+		mousedown = false;
+		objs[0].anchor = false;
+	}
+});
+
+class planet {
+	//
+	/*var pos;
+	var vel;
+	var anchor;*/
+	
+	constructor(pos, vel, acc, anchor, size) {
+		this.pos = pos;
+		this.vel = vel;
+		this.acc = acc;
+		this.anchor = anchor;
+		
+		this.size = size;
+		
+		this.name = "planet";
+	}
+	
+	draw() {
+		ctx.strokeStyle = "#FF0000";
+		ctx.beginPath();
+		ctx.arc(this.pos[0], this.pos[1], this.size, 0, 2 * Math.PI);
+		ctx.stroke();
+		ctx.closePath();
+		ctx.fillStyle = "#FF0000";
+		ctx.fill();
+	}
+}
+class player {
+	//
+	
+	constructor(pos, vel, acc, anchor, size) {
+		this.pos = pos;
+		this.vel = vel;
+		this.acc = acc;
+		this.anchor = anchor;
+		
+		this.size = size;
+		
+		this.name = "player";
+	}
+	
+	draw() {
+		// Need speed to find normalized direction vector
+		var speed;
+		var dirN;// Normalized direction
+		if (this.vel[0] != 0 || this.vel[1] != 0) {
+			speed = (this.vel[0]**2 + this.vel[1]**2)**(1/2);
+			dirN = [this.vel[0]/speed, this.vel[1]/speed];
+		} else {// Face up when velocity 0
+			dirN = [0, -1];
+		}
+		
+		// Direction with size
+		var dir = [dirN[0]*this.size,dirN[1]*this.size];
+		
+		ctx.strokeStyle = "#00FF00";
+		ctx.beginPath();
+		ctx.moveTo(this.pos[0]+dir[0], this.pos[1]+dir[1]);
+		ctx.lineTo(this.pos[0]-(dir[1]/2)-(dir[0]/2), this.pos[1]+(dir[0]/2)-(dir[1]/2));
+		ctx.lineTo(this.pos[0], this.pos[1]);
+		ctx.lineTo(this.pos[0]+(dir[1]/2)-(dir[0]/2), this.pos[1]-(dir[0]/2)-(dir[1]/2));
+		ctx.lineTo(this.pos[0]+dir[0], this.pos[1]+dir[1]);
+		
+		ctx.lineWidth = 2;
+		ctx.lineCap = "round";
+		ctx.stroke();
+		ctx.closePath();
+		ctx.fillStyle = "#00FF00";
+		ctx.fill();
+	}
+}
+class star {
+	//
+	/*var pos;
+	var vel;
+	var anchor;*/
+	
+	constructor(pos, vel, acc, anchor, size) {
+		this.pos = pos;
+		this.vel = vel;
+		this.acc = acc;
+		this.anchor = anchor;
+		
+		this.size = size;
+		
+		this.name = "star";
+	}
+	
+	draw() {
+		ctx.strokeStyle = "#FFFF00";
+		ctx.beginPath();
+		ctx.moveTo(this.pos[0], this.pos[1]-this.size);
+		ctx.lineTo(this.pos[0]-(this.size/4), this.pos[1]-(this.size/4));
+		ctx.lineTo(this.pos[0]-this.size, this.pos[1]);
+		ctx.lineTo(this.pos[0]-(this.size/4), this.pos[1]+(this.size/4));
+		ctx.lineTo(this.pos[0], this.pos[1]+this.size);
+		ctx.lineTo(this.pos[0]+(this.size/4), this.pos[1]+(this.size/4));
+		ctx.lineTo(this.pos[0]+this.size, this.pos[1]);
+		ctx.lineTo(this.pos[0]+(this.size/4), this.pos[1]-(this.size/4));
+		ctx.lineTo(this.pos[0], this.pos[1]-this.size);
+		
+		
+		ctx.lineWidth = 2;
+		//ctx.lineCap = "round";
+		ctx.stroke();
+		ctx.closePath();
+		ctx.fillStyle = "#FFFF00";
+		ctx.fill();
+	}
+}
+</script>
+</head>
+
+<body>
+<h1 style="text-align: center">Gravity Game</h1>
+<input type="button" value="PLAY" onclick="play()" style="padding: 10px; padding-left: 40px; padding-right: 40px; margin: auto; display: block;">
+<br>
+<div style="text-align: center;">
+	<span id="framerate" style="margin-right: 10px; overflow: hidden;">60</span>
+	<span id="frametime">16.6</span>
+</div>
+<canvas id="canvas" width="1200" height="600" style="border: 2px solid black; margin: auto; display: block;"></canvas>
+</body>
+</html><!--border: 2px solid black; 
