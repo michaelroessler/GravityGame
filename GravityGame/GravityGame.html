@@ -16,6 +16,8 @@ var objs;
 var score;
 var scoreReq;
 
+var level;
+
 var playing = false;// For play button
 var frame = 0;
 
@@ -40,13 +42,15 @@ function setup() {
 	ctx.fillStyle = "#030322";
 	ctx.fillRect(0, 0, W, H);
 	
+	$("#canvas").css("border", "4px solid black");
+	
 	time = Date.now();
 	
 	selectLevel();
 }
 
 function selectLevel() {
-	var level = $("input[name='levels']:checked").val();
+	level = $("input[name='levels']:checked").val();
 	console.log(level);
 	switch(level) {
 		case '1':
@@ -97,6 +101,25 @@ function selectLevel() {
 			
 			score = 0;
 			scoreReq = 1;
+			break;
+		case '6':
+			objs = [new player([(W/2)-100, (H/1.5)-130],[0, 0],0,true,10),
+					new planet([W/2, H/1.5],[0, 0],290,true,120),
+					new star([W/2, (H/1.5)-260],[0, 0],0,true,12),
+					new star([(W/2)-90, (H/1.5)-190],[0, 0],0,true,12),
+					new star([(W/2)+90, (H/1.5)-190],[0, 0],0,true,12)];
+			
+			score = 0;
+			scoreReq = 3;
+			break;
+		case '7':
+			objs = [new player([(W/2)-200, H/2],[0, 0],0,true,10),
+					new planet([W/2, H/2],[0, 0],330,true,60),
+					new star([(W/2)-130, (H/2)-150],[0, 0],0,true,12),
+					new star([(W/2)-130, (H/2)+150],[0, 0],0,true,12)];
+			
+			score = 0;
+			scoreReq = 2;
 			break;
 		default:
 			objs = [new player([W/2, H/1.3],[0, 0],0,true,10),
@@ -187,6 +210,8 @@ function addScore() {
 	score++;
 	if (score >= scoreReq) {
 		console.log("YOU WIN");
+		$("[for='" + level + "']").css("color", "#00BB00");//color: #00BB00;
+		$("#canvas").css("border", "4px solid #00BB00");
 	}
 }
 
@@ -404,15 +429,42 @@ class star {
 <div style="text-align: center;">
 	<span id="framerate" style="margin-right: 10px; overflow: hidden;">60</span>
 	<span id="frametime">16.6</span>
-</div>				<!--1200 x 600-->
-<canvas id="canvas" width="1280" height="800" style="border: 2px solid black; margin: auto; display: block;"></canvas>
+</div>		
+<div style="margin: auto; position: relative;">
+	<div id="levelselect" style="position: absolute; right: 90%; top: 10%;">
+		<select id="galaxyselect">
+			<option value="1">Galaxy 1</option>
+			<option value="1">Galaxy 10</option>
+		</select><br>
+		<div id="G1" style="">
+			<input type="radio" checked name="levels" id="1" value="1"><label for="1">Level 1</label><br>
+			<input type="radio" name="levels" id="2" value="2"><label for="2">Level 2</label><br>
+			<input type="radio" name="levels" id="3" value="3"><label for="3">Level 3</label><br>
+			<input type="radio" name="levels" id="4" value="4"><label for="4">Level 4</label><br>
+			<input type="radio" name="levels" id="5" value="5"><label for="5">Level 5</label><br>
+			<input type="radio" name="levels" id="6" value="6"><label for="6">Level 6</label><br>
+			<input type="radio" name="levels" id="7" value="7"><label for="7">Level 7</label><br>
+			<input type="radio" name="levels" id="8" value="8"><label for="8">Level 8</label><br>
+			<input type="radio" name="levels" id="9" value="9"><label for="9">Level 9</label><br>
+			<input type="radio" name="levels" id="10" value="10"><label for="10">Level 10</label><br>
+			<input type="radio" name="levels" id="11" value="11"><label for="11">Level 11</label><br>
+		</div>
+	</div>				<!--1200 x 600-->
+	<canvas id="canvas" width="1280" height="800" style="border: 4px solid black; margin: auto; display: block;"></canvas>
+</div>
 <br>
-<div id="levelselect" style="margin-left: 20%;">
+<!--<div id="levelselect" style="margin-left: 20%;">
 	<input type="radio" checked name="levels" id="1" value="1"><label for="1">Level 1</label><br>
 	<input type="radio" name="levels" id="2" value="2"><label for="2">Level 2</label><br>
 	<input type="radio" name="levels" id="3" value="3"><label for="3">Level 3</label><br>
 	<input type="radio" name="levels" id="4" value="4"><label for="4">Level 4</label><br>
 	<input type="radio" name="levels" id="5" value="5"><label for="5">Level 5</label><br>
-</div>
+	<input type="radio" name="levels" id="6" value="6"><label for="6">Level 6</label><br>
+	<input type="radio" name="levels" id="7" value="7"><label for="7">Level 7</label><br>
+	<input type="radio" name="levels" id="8" value="8"><label for="8">Level 8</label><br>
+	<input type="radio" name="levels" id="9" value="9"><label for="9">Level 9</label><br>
+	<input type="radio" name="levels" id="10" value="10"><label for="10">Level 10</label><br>
+	<input type="radio" name="levels" id="11" value="11"><label for="11">Level 11</label><br>
+</div>-->
 </body>
 </html><!--border: 2px solid black; 
