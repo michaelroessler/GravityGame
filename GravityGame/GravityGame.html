@@ -211,7 +211,12 @@ function addScore() {
 	if (score >= scoreReq) {
 		console.log("YOU WIN");
 		$("[for='" + level + "']").css("color", "#00BB00");//color: #00BB00;&#x2713;
-		$("[for='" + level + "']").append("&#x2713;");
+		var txt = $("[for='" + level + "']").text();
+		//console.log(txt);
+		if (txt.substring(txt.length-1) != "✓") {
+			$("[for='" + level + "']").append("&#x2713;");
+		}
+		
 		$("#canvas").css("border", "4px solid #00BB00");
 	}
 }
