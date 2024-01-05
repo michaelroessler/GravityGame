@@ -210,7 +210,8 @@ function addScore() {
 	score++;
 	if (score >= scoreReq) {
 		console.log("YOU WIN");
-		$("[for='" + level + "']").css("color", "#00BB00");//color: #00BB00;
+		$("[for='" + level + "']").css("color", "#00BB00");//color: #00BB00;&#x2713;
+		$("[for='" + level + "']").append("&#x2713;");
 		$("#canvas").css("border", "4px solid #00BB00");
 	}
 }
@@ -278,11 +279,21 @@ addEventListener("mouseup", (event) => {
 	}
 });
 addEventListener('keydown', event => {
-  if (event.code === 'Space') {
-    console.log('Space pressed');
-	play();
-  }
-})
+	if (event.code === 'Space') {
+		console.log('Space pressed');
+		play();
+	}
+});
+addEventListener("DOMContentLoaded", (event) => {
+    $("#galaxyselect")[0].addEventListener('change', event => {
+		console.log("eventlistener: " + event.target.value);
+		for (var i = 1; i < 4; i++) {
+			$("#G"+i).css("display", "none");
+		}
+		$("#G"+event.target.value).css("display", "block");
+	});
+});
+
 
 class planet {
 	//
@@ -420,6 +431,11 @@ class star {
 	}
 }
 </script>
+<style>
+.lvls {
+	height: 15px;
+}
+</style>
 </head>
 
 <body>
@@ -431,23 +447,32 @@ class star {
 	<span id="frametime">16.6</span>
 </div>		
 <div style="margin: auto; position: relative;">
-	<div id="levelselect" style="position: absolute; right: 90%; top: 10%;">
+	<div id="levelselect" style="position: absolute; right: 90%; top: 10%; width: 100px;"><!--absolute -->
 		<select id="galaxyselect">
 			<option value="1">Galaxy 1</option>
-			<option value="1">Galaxy 10</option>
+			<option value="2">Galaxy 2</option>
+			<option value="3">Galaxy 3</option>
 		</select><br>
-		<div id="G1" style="">
-			<input type="radio" checked name="levels" id="1" value="1"><label for="1">Level 1</label><br>
-			<input type="radio" name="levels" id="2" value="2"><label for="2">Level 2</label><br>
-			<input type="radio" name="levels" id="3" value="3"><label for="3">Level 3</label><br>
-			<input type="radio" name="levels" id="4" value="4"><label for="4">Level 4</label><br>
-			<input type="radio" name="levels" id="5" value="5"><label for="5">Level 5</label><br>
-			<input type="radio" name="levels" id="6" value="6"><label for="6">Level 6</label><br>
-			<input type="radio" name="levels" id="7" value="7"><label for="7">Level 7</label><br>
-			<input type="radio" name="levels" id="8" value="8"><label for="8">Level 8</label><br>
-			<input type="radio" name="levels" id="9" value="9"><label for="9">Level 9</label><br>
-			<input type="radio" name="levels" id="10" value="10"><label for="10">Level 10</label><br>
-			<input type="radio" name="levels" id="11" value="11"><label for="11">Level 11</label><br>
+		<div id="G1" style="display: block;">
+			<input type="radio" class="lvls" name="levels" id="1" value="1" checked><label for="1">Level 1</label><br>
+			<input type="radio" class="lvls" name="levels" id="2" value="2"><label for="2">Level 2</label><br>
+			<input type="radio" class="lvls" name="levels" id="3" value="3"><label for="3">Level 3</label><br>
+			<input type="radio" class="lvls" name="levels" id="4" value="4"><label for="4">Level 4</label><br>
+			<input type="radio" class="lvls" name="levels" id="5" value="5"><label for="5">Level 5</label><br>
+			<input type="radio" class="lvls" name="levels" id="6" value="6"><label for="6">Level 6</label><br>
+			<input type="radio" class="lvls" name="levels" id="7" value="7"><label for="7">Level 7</label><br>
+			<input type="radio" class="lvls" name="levels" id="8" value="8"><label for="8">Level 8</label><br>
+		</div>
+		<div id="G2" style="display: none;">
+			<input type="radio" class="lvls" name="levels" id="21" value="21"><label for="21">Level 1</label><br>
+			<input type="radio" class="lvls" name="levels" id="22" value="22"><label for="22">Level 2</label><br>
+			<input type="radio" class="lvls" name="levels" id="23" value="23"><label for="23">Level 3</label><br>
+		</div>
+		<div id="G3" style="display: none;">
+			<input type="radio" class="lvls" name="levels" id="31" value="31"><label for="31">Level 1</label><br>
+			<input type="radio" class="lvls" name="levels" id="32" value="32"><label for="32">Level 2</label><br>
+			<input type="radio" class="lvls" name="levels" id="33" value="33"><label for="33">Level 3</label><br>
+			<input type="radio" class="lvls" name="levels" id="34" value="34"><label for="34">Level 4</label><br>
 		</div>
 	</div>				<!--1200 x 600-->
 	<canvas id="canvas" width="1280" height="800" style="border: 4px solid black; margin: auto; display: block;"></canvas>
