@@ -15,6 +15,7 @@ var objs;
 
 var score;
 var scoreReq;
+var clicked;
 
 var level;
 
@@ -46,6 +47,7 @@ function setup() {
 	
 	time = Date.now();
 	
+	clicked = false;
 	selectLevel();
 }
 
@@ -73,6 +75,23 @@ function selectLevel() {
 			scoreReq = 2;
 			break;
 		case '13':
+			objs = [new player([(W/2)-300, H/2],[0, 0],0,true,10),
+					new planet([W/2, H/2],[0, 0],330,true,60),
+					new star([(W/2)+80, (H/2)],[0, 0],0,true,12)];
+			
+			score = 0;
+			scoreReq = 1;
+			break;
+		case '14':
+			objs = [new player([(W/2)+50, (H/2)-137],[0, 0],0,true,10),//[(W/2)+50, (H/2)-170] [(W/2)+50, (H/2)-137]
+					new planet([(W/2)+50, (H/2)],[0, 0],150,true,40),
+					new star([(W/2)+120, (H/2)],[0, 0],0,true,12),
+					new star([(W/2)-320, (H/2)],[0, 0],0,true,12)];
+			
+			score = 0;
+			scoreReq = 2;
+			break;
+		case '16':
 			//console.log("Level " + level);
 			objs = [new player([(W/2)-200, H/2],[0, 0],0,true,10),
 					new planet([W/2, H/2],[0, 0],330,true,60),
@@ -83,10 +102,14 @@ function selectLevel() {
 			score = 0;
 			scoreReq = 3;
 			break;
-		case '14':
-			objs = [new player([(W/2)-200, H/2],[0, 0],0,true,10),
-					new planet([W/2, H/2],[0, 0],330,true,60),
-					new star([(W/2)+80, (H/2)],[0, 0],0,true,12)];
+		case '21':
+			objs = [new player([W/2, H/2],[0, 0],0,true,10),
+					new planet([(W/2)-200, H/2],[0, 0],300,true,50),
+					new planet([(W/2)+200, H/2],[0, 0],300,true,50),
+					new star([(W/2), (H/2)+200],[0, 0],0,true,12),
+					new star([(W/2), (H/2)-200],[0, 0],0,true,12)];//,
+					//new planet([W/4, H/4],[100, -20],20,false,40),
+					//new planet([W/4, H/1.3],[10, -20],20,false,40)];
 			
 			score = 0;
 			scoreReq = 1;
@@ -144,11 +167,11 @@ function game() {
 	time = t;
 	
 	// Display framerate/time
-	if (frame % 10 == 0) {// Update every 10 frames;
+	/*if (frame % 10 == 0) {// Update every 10 frames;
 		$("#framerate").text(Math.round(1000/diff));
 		$("#frametime").text(diff);
 	}
-	frame++;
+	frame++;*/
 	
 	//input()??
 	sim();
@@ -178,6 +201,7 @@ function sim() {
 			objs[i].pos[1] += objs[i].vel[1] * (diff/1000);
 		}
 	}
+	$("#velocity").text((objs[0].vel[0]**2 + objs[0].vel[1]**2)**(1/2));
 	collision();
 }
 
@@ -227,12 +251,14 @@ function draw() {
 	for (var i = 0; i < objs.length; i++) {
 		objs[i].draw();
 	}
-	if (mousedown) {
+	if (mousedown && !clicked) {
 		var length = ((holdpos[0]-clickpos[0])**2 + (holdpos[1]-clickpos[1])**2)**(1/2);
-		var color = 255 - (length/1);
-		if (color < 0) {
+		var color = 165 - ((length/255)*165);
+		color += 90;// for a clearer distinction from max length
+		if (length >= 255) {
 			color = 0;
 		}
+		
 		ctx.strokeStyle = "rgb(255, "+color+", "+color+")";
 		ctx.beginPath();
 		ctx.moveTo(clickpos[0], clickpos[1]);
@@ -253,7 +279,7 @@ addEventListener("mousedown", (event) => {
 	var trueX = event.clientX-c.offset().left-1.5;//	Need to subtract offset to get xy on canvas.
 	var trueY = event.clientY-c.offset().top-1.5625;//	-1.5(625) is to adjust it.
 	
-	if (trueX >= 0 && trueX <= W && trueY >= 0 && trueY <= H) {
+	if (!clicked && trueX >= 0 && trueX <= W && trueY >= 0 && trueY <= H) {
 		mousedown = true;
 		clickpos = [trueX, trueY];
 		holdpos = [trueX, trueY];
@@ -263,7 +289,7 @@ addEventListener("mousedown", (event) => {
 });
 addEventListener("mousemove", (event) => {
 	//console.log("Client: " + event.clientX + "," + event.clientY + "  Offset: " + event.offsetX + "," + event.offsetY + "  Page: " + event.pageX + "," + event.pageY + "  Screen: " + event.screenX + "," + event.screenY);
-	if (mousedown) {
+	if (mousedown && !clicked) {
 		var trueX = event.clientX-c.offset().left-1.5;
 		var trueY = event.clientY-c.offset().top-1.5625;
 		holdpos = [trueX, trueY];
@@ -280,6 +306,7 @@ addEventListener("mouseup", (event) => {
 	//console.log("Client: " + event.clientX + "," + event.clientY + "  Offset: " + event.offsetX + "," + event.offsetY + "  Page: " + event.pageX + "," + event.pageY + "  Screen: " + event.screenX + "," + event.screenY);
 	if (mousedown) {
 		mousedown = false;
+		clicked = true;
 		objs[0].anchor = false;
 	}
 });
@@ -319,8 +346,12 @@ class planet {
 	
 	draw() {
 		ctx.strokeStyle = "#FF0000";
+		if (this.acc > 0) {
+			ctx.strokeStyle = "#0000FF";
+		}
 		ctx.beginPath();
 		ctx.arc(this.pos[0], this.pos[1], this.size, 0, 2 * Math.PI);
+		ctx.lineWidth = 4;
 		ctx.stroke();
 		ctx.closePath();
 		ctx.fillStyle = "#FF0000";
@@ -373,6 +404,9 @@ class player {
 		}
 		
 		ctx.strokeStyle = "#00FF00";
+		if (this.acc > 0) {
+			ctx.strokeStyle = "#0000FF";
+		}
 		ctx.beginPath();
 		
 		if (!offS) {
@@ -411,6 +445,9 @@ class star {
 	
 	draw() {
 		ctx.strokeStyle = "#FFFF00";
+		if (this.acc > 0) {
+			ctx.strokeStyle = "#0000FF";
+		}
 		ctx.beginPath();
 		ctx.moveTo(this.pos[0], this.pos[1]-this.size);
 		ctx.lineTo(this.pos[0]-(this.size/4), this.pos[1]-(this.size/4));
@@ -448,28 +485,29 @@ class star {
 <input type="button" value="PLAY" onclick="play()" style="padding: 10px; padding-left: 40px; padding-right: 40px; margin: auto; display: block;">
 <br>
 <div style="text-align: center;">
-	<span id="framerate" style="margin-right: 10px; overflow: hidden;">60</span>
-	<span id="frametime">16.6</span>
+	<!--<span id="framerate" style="margin-right: 10px; overflow: hidden;">60</span>
+	<span id="frametime">16.6</span>-->
+	<span id="velocity">0.0</span>
 </div>		
 <div style="margin: auto; position: relative;">
-	<div id="levelselect" style="position: absolute; right: 90%; top: 10%; width: 100px;"><!--absolute -->
+	<div id="levelselect" style="position: absolute; left: 50px; top: 10%; width: 300px;"><!--right: 90%; -->
 		<select id="galaxyselect">
 			<option value="1">Galaxy 1</option>
 			<option value="2">Galaxy 2</option>
 			<option value="3">Galaxy 3</option>
 		</select><br>
 		<div id="G1" style="display: block;">
-			<input type="radio" class="lvls" name="levels" id="11" value="11" checked><label for="11">Level 1</label><br>
-			<input type="radio" class="lvls" name="levels" id="12" value="12"><label for="12">Level 2</label><br>
-			<input type="radio" class="lvls" name="levels" id="13" value="13"><label for="13">Level 3</label><br>
-			<input type="radio" class="lvls" name="levels" id="14" value="14"><label for="14">Level 4</label><br>
+			<input type="radio" class="lvls" name="levels" id="11" value="11" checked><label for="11">1.Collect the Stars</label><br>
+			<input type="radio" class="lvls" name="levels" id="12" value="12"><label for="12">2.Why not both?</label><br>
+			<input type="radio" class="lvls" name="levels" id="13" value="13"><label for="13">3.Too close to the sun</label><br>
+			<input type="radio" class="lvls" name="levels" id="14" value="14"><label for="14">4.High and Low</label><br>
 			<input type="radio" class="lvls" name="levels" id="15" value="15"><label for="51">Level 5</label><br>
 			<input type="radio" class="lvls" name="levels" id="16" value="16"><label for="16">Level 6</label><br>
 			<input type="radio" class="lvls" name="levels" id="17" value="17"><label for="17">Level 7</label><br>
 			<input type="radio" class="lvls" name="levels" id="18" value="18"><label for="18">Level 8</label><br>
 		</div>
 		<div id="G2" style="display: none;">
-			<input type="radio" class="lvls" name="levels" id="21" value="21"><label for="21">Level 1</label><br>
+			<input type="radio" class="lvls" name="levels" id="21" value="21"><label for="21">1.Tightrope</label><br>
 			<input type="radio" class="lvls" name="levels" id="22" value="22"><label for="22">Level 2</label><br>
 			<input type="radio" class="lvls" name="levels" id="23" value="23"><label for="23">Level 3</label><br>
 		</div>
